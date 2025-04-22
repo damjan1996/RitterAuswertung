@@ -5,7 +5,6 @@ Tests für die Web-App-Funktionen der RitterDigitalAuswertung-Anwendung.
 import unittest
 from unittest.mock import patch, MagicMock
 import os
-import sys
 import flask
 
 from src.web.app import create_app, render_error_page
@@ -63,57 +62,46 @@ class TestWebApp(unittest.TestCase):
                 # Überprüfen des Status-Codes
                 self.assertEqual(status, 500)
 
-    def test_page_not_found_handler(self):
-        """Test des 404-Fehlerhandlers."""
-        with self.app.test_request_context():
-            # Eine 404-Exception manuell auslösen
-            try:
-                flask.abort(404)
-            except Exception as e:
-                # Den Fehlerhandler manuell aufrufen
-                with patch('src.web.app.render_error_page') as mock_render:
-                    mock_render.return_value = ("Fehlerseite", 404)
-                    # page_not_found über die Exception aufrufen
-                    for handler in self.app.error_handler_spec[None][404]:
-                        handler(e)
+    def test_404_response(self):
+        """Test, ob 404-Fehler korrekt behandelt werden."""
+        # Nicht existierende Route aufrufen
+        response = self.client.get('/nicht-existierende-route')
+        self.assertEqual(response.status_code, 404)
+        # Auf Deutsch statt Englisch prüfen
+        self.assertIn(b'fehler', response.data.lower())
+        self.assertIn(b'nicht gefunden', response.data.lower())
 
-                    # Überprüfen, ob render_error_page aufgerufen wurde
-                    mock_render.assert_called_once()
+    def test_error_route(self):
+        """Test, ob eine Route, die einen Fehler auslöst, korrekt behandelt wird."""
+        # Definiere eine Test-Route, die einen Fehler auslöst
+        @self.app.route('/test-error-route')
+        def test_error_route():
+            # Einen Fehler auslösen
+            raise Exception("Test Exception")
 
-    def test_server_error_handler(self):
-        """Test des 500-Fehlerhandlers."""
-        with self.app.test_request_context():
-            # Eine 500-Exception manuell auslösen
-            try:
-                flask.abort(500)
-            except Exception as e:
-                # Den Fehlerhandler manuell aufrufen
-                with patch('src.web.app.render_error_page') as mock_render:
-                    mock_render.return_value = ("Fehlerseite", 500)
-                    # server_error über die Exception aufrufen
-                    for handler in self.app.error_handler_spec[None][500]:
-                        handler(e)
+        # Route aufrufen
+        response = self.client.get('/test-error-route')
 
-                    # Überprüfen, ob render_error_page aufgerufen wurde
-                    mock_render.assert_called_once()
+        # Überprüfen des Status-Codes
+        self.assertEqual(response.status_code, 500)
+        # Auf Deutsch statt Englisch prüfen
+        self.assertIn(b'fehler', response.data.lower())
+        self.assertIn(b'aufgetreten', response.data.lower())
 
-    def test_handle_exception_handler(self):
-        """Test des allgemeinen Exception-Handlers."""
-        with self.app.test_request_context():
-            # Eine Ausnahme erstellen
-            test_exception = Exception("Testausnahme")
+    def test_custom_error_in_route(self):
+        """Test, ob benutzerdefinierte Fehler in Routen korrekt behandelt werden."""
+        # Eine spezielle Testroute hinzufügen, die die render_error_page-Funktion direkt aufruft
+        @self.app.route('/custom-error')
+        def custom_error():
+            return render_error_page("Benutzerdefinierter Testfehler", 418)
 
-            # Den Fehlerhandler manuell aufrufen
-            with patch('src.web.app.render_error_page') as mock_render:
-                mock_render.return_value = ("Fehlerseite", 500)
-                # Alle Exception-Handler durchgehen
-                for code, handlers in self.app.error_handler_spec[None].items():
-                    if code is None:  # Exception handler
-                        for handler in handlers:
-                            handler(test_exception)
+        # Die Route aufrufen
+        response = self.client.get('/custom-error')
 
-                # Überprüfen, ob render_error_page aufgerufen wurde
-                mock_render.assert_called_once()
+        # Der Status-Code sollte der angeforderte sein
+        self.assertEqual(response.status_code, 418)
+        # Die Seite sollte den Fehlertext enthalten
+        self.assertIn(b'Benutzerdefinierter Testfehler', response.data)
 
 
 if __name__ == '__main__':

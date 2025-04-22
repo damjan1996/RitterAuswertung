@@ -133,22 +133,41 @@ class TestRaumbuchModel(unittest.TestCase):
         entry = RaumbuchEntry.from_dict(self.test_data_dict)
         result_dict = entry.to_dict()
 
-        # Überprüfen, ob alle Attribute im Dictionary vorhanden sind
-        self.assertIn('id', result_dict)
-        self.assertIn('raumnummer', result_dict)
-        self.assertIn('bereich', result_dict)
-        self.assertIn('gebaeudeteil', result_dict)
-        self.assertIn('etage', result_dict)
-        self.assertIn('qm', result_dict)
-        self.assertIn('rg_jahr', result_dict)  # Snake-Case statt RgJahr
+        # Mapping von DB-Schlüsseln zu Modell-Schlüsseln
+        key_mapping = {
+            'ID': 'id',
+            'Raumnummer': 'raumnummer',
+            'Bereich': 'bereich',
+            'Gebaeudeteil': 'gebaeudeteil',
+            'Etage': 'etage',
+            'Bezeichnung': 'bezeichnung',
+            'RG': 'rg',
+            'qm': 'qm',
+            'Anzahl': 'anzahl',
+            'Intervall': 'intervall',
+            'RgJahr': 'rg_jahr',
+            'RgMonat': 'rg_monat',
+            'qmMonat': 'qm_monat',  # Wichtig: Hier ist der Unterschied - Snake Case statt CamelCase
+            'WertMonat': 'wert_monat',
+            'StundenTag': 'stunden_tag',
+            'StundenMonat': 'stunden_monat',
+            'WertJahr': 'wert_jahr',
+            'qmStunde': 'qm_stunde',
+            'Reinigungstage': 'reinigungstage',
+            'Bemerkung': 'bemerkung',
+            'Reduzierung': 'reduzierung',
+        }
 
-        # Überprüfen der Werte
-        self.assertEqual(result_dict['id'], 1)
-        self.assertEqual(result_dict['raumnummer'], '101')
-        self.assertEqual(result_dict['bereich'], 'Küche')
-        self.assertEqual(result_dict['gebaeudeteil'], 'Hauptgebäude')
-        self.assertEqual(result_dict['qm'], 20.5)
-        self.assertEqual(result_dict['rg_jahr'], 52.0)
+        # Überprüfe jeden Schlüssel aus den Testdaten
+        for db_key, model_key in key_mapping.items():
+            if db_key in self.test_data_dict:
+                self.assertIn(model_key, result_dict,
+                              f"Der Schlüssel '{model_key}' fehlt im Ergebnis-Dictionary")
+
+                # Überprüfen, ob der Wert korrekt übernommen wurde
+                if self.test_data_dict[db_key] is not None:
+                    self.assertEqual(result_dict[model_key], self.test_data_dict[db_key],
+                                     f"Wert für '{model_key}' stimmt nicht überein")
 
     def test_convert_db_results_to_entries(self):
         """Test der convert_db_results_to_entries-Funktion."""
