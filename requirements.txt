@@ -1,0 +1,31 @@
+# Anwendungsabhängigkeiten
+Flask>=2.3.0
+Werkzeug>=2.3.0
+Jinja2>=3.1.2
+pyodbc>=4.0.39
+pandas>=2.0.0
+matplotlib>=3.7.2
+numpy>=1.24.3
+openpyxl>=3.1.2
+xlsxwriter>=3.1.0
+
+# Für Excel-Export
+XlsxWriter>=3.1.0
+
+# Für PDF-Export (mit alternativen Optionen)
+pdfkit>=1.0.0
+# WeasyPrint>=60.0  # Uncomment wenn Sie WeasyPrint bevorzugen
+
+# Datenbankzugriff
+SQLAlchemy>=2.0.9
+
+# Entwicklungswerkzeuge
+pytest>=7.3.1
+pytest-cov>=4.1.0
+black>=23.3.0
+flake8>=6.0.0
+mypy>=1.2.0
+isort>=5.12.0
+
+# Debugging
+ipython>=8.13.0

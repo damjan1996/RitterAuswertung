@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Start - Ritter Digital Raumbuch Auswertung{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Raumbuch Auswertung</h2>
+    </div>
+    <div class="card-body">
+        <p>Willkommen bei der Ritter Digital Raumbuch Auswertung. Mit dieser Anwendung können Sie Daten aus dem Raumbuch-System analysieren und visualisieren.</p>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Standort auswählen</div>
+                    <div class="card-body">
+                        <form id="standort-form" action="{{ url_for('report') }}" method="get">
+                            <div class="form-group">
+                                <label for="standort-select">Standort:</label>
+                                <select class="form-control" id="standort-select" name="standort_id" required>
+                                    <option value="">Bitte wählen...</option>
+                                    {% for standort in standorte %}
+                                        <option value="{{ standort.ID }}">{{ standort.Bezeichnung }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Auswerten
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Informationen</div>
+                    <div class="card-body">
+                        <p>Diese Anwendung ermöglicht:</p>
+                        <ul>
+                            <li>Anzeigen der Raumbuch-Daten für einen ausgewählten Standort</li>
+                            <li>Filtern und Sortieren der Daten nach verschiedenen Kriterien</li>
+                            <li>Berechnung von Statistiken und Zusammenfassungen</li>
+                            <li>Visualisierung der Daten mit Diagrammen</li>
+                            <li>Export der Daten als Excel oder PDF</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if data and summary %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Zusammenfassung für {{ selected_standort.Bezeichnung }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="summary-grid">
+            <div class="summary-box">
+                <h3>Räume</h3>
+                <div class="value">{{ summary.total_rooms }}</div>
+                <div class="label">Anzahl</div>
+            </div>
+            <div class="summary-box">
+                <h3>Gesamtfläche</h3>
+                <div class="value">{{ "%.2f"|format(summary.total_qm) }}</div>
+                <div class="label">Quadratmeter</div>
+            </div>
+            <div class="summary-box">
+                <h3>Monatlich</h3>
+                <div class="value">{{ "%.2f"|format(summary.total_wert_monat) }}</div>
+                <div class="label">Euro</div>
+            </div>
+            <div class="summary-box">
+                <h3>Jährlich</h3>
+                <div class="value">{{ "%.2f"|format(summary.total_wert_jahr) }}</div>
+                <div class="label">Euro</div>
+            </div>
+            <div class="summary-box">
+                <h3>Stunden/Monat</h3>
+                <div class="value">{{ "%.2f"|format(summary.total_stunden_monat) }}</div>
+                <div class="label">Stunden</div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <a href="{{ url_for('report', standort_id=selected_standort.ID) }}" class="btn btn-primary btn-block">
+                    <i class="fas fa-table"></i> Detaillierte Auswertung anzeigen
+                </a>
+            </div>
+            <div class="col-md-6">
+                <div class="btn-group btn-block" role="group">
+                    <button id="export-excel" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Excel-Export
+                    </button>
+                    <button id="export-pdf" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> PDF-Export
+                    </button>
+                </div>
+                <input type="hidden" id="standort-id" value="{{ selected_standort.ID }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <canvas id="bereich-chart" data-chart-data='{{ viz_data.bereich_data|tojson }}'></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-container">
+            <canvas id="rg-chart" data-chart-data='{{ viz_data.rg_data|tojson }}'></canvas>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wenn ein Chart vorhanden ist, dann Charts initialisieren
+        if (document.getElementById('bereich-chart') || document.getElementById('rg-chart')) {
+            createCharts();
+        }
+    });
+</script>
+{% endblock %}

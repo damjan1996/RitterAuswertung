@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Fehler - Ritter Digital Raumbuch Auswertung{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h2>Fehler</h2>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">Es ist ein Fehler aufgetreten</h4>
+            <p>{{ message }}</p>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Zurück zur Startseite
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
